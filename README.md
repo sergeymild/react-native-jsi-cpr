@@ -15,22 +15,6 @@ React Native JSI cpr HTTP client
 # and npx pod-install
 ```
 
-### Types
-```typescript
-export type JsiIXWebSocketState = 'CONNECTING' | 'OPEN' | 'CLOSING' | 'CLOSED';
-export type JsiIXWebSocketCallback =
-  | 'onOpen'
-  | 'onMessage'
-  | 'onClose'
-  | 'onError';
-export type JsiIXWebSocketError = string;
-
-type OnErrorCallback = (error: JsiIXWebSocketError) => void;
-type OnMessageCallback = (message: string) => void;
-type OnOpenCallback = () => void;
-type OnCloseCallback = () => void;
-```
-
 ### Import
 ```typescript
 import { JsiHttp } from 'react-native-jsi-cpr';
