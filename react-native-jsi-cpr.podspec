@@ -10,10 +10,19 @@ Pod::Spec.new do |s|
   s.license      = package["license"]
   s.authors      = package["author"]
 
-  s.platforms    = { :ios => "10.0" }
+  s.platforms    = { :ios => "11.0" }
   s.source       = { :git => "https://github.com/sergeymild/react-native-jsi-cpr.git", :tag => "#{s.version}" }
 
   s.source_files = "ios/**/*.{h,m,mm}", "cpp/**/*.{h,cpp}"
 
+  s.subspec 'cpr' do |ali|
+     ali.source_files = 'cpp/include/**/*.{h,cpp}'
+     ali.header_mappings_dir = 'cpp/include'
+  end
+
   s.dependency "React-Core"
+  s.dependency "SocketRocket"
+  s.dependency "React-callinvoker"
+  s.dependency 'ReactCommon/turbomodule/core'
+  s.dependency 'curl'
 end

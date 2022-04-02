@@ -1,10 +1,5 @@
 #import <React/RCTBridgeModule.h>
-
-#ifdef __cplusplus
-
-#import "react-native-jsi-cpr.h"
-
-#endif
+#import <React/RCTBridge.h>
 
 @interface JsiCpr : NSObject <RCTBridgeModule>
 
