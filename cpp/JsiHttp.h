@@ -13,7 +13,7 @@ typedef std::function<void(Response)> HttpCallback;
 class JsiHttp {
     
 public:
-    void installJSIBindings(std::string certPath, facebook::jsi::Object *jsObject);
+    void installJSIBindings(std::string certPath);
     explicit JsiHttp(
                 jsi::Runtime *rt,
                 std::shared_ptr<facebook::react::CallInvoker> jsCallInvoker);

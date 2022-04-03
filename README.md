@@ -10,7 +10,7 @@ React Native JSI cpr HTTP client
 
 ```sh
 #add to package.json
-"react-native-jsi-cpr":"sergeymild/react-native-jsi-cpr#0.5.0"
+"react-native-jsi-cpr":"sergeymild/react-native-jsi-cpr#0.6.0"
 # after that make yarn install
 # and npx pod-install
 ```

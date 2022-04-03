@@ -3,7 +3,6 @@
 //
 
 #include "HttpHelper.h"
-#include <react/jni/WritableNativeMap.h>
 
 #include <utility>
 #include "iostream"
@@ -21,7 +20,6 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *) {
 
 // JNI binding
 void HttpHelper::registerNatives() {
-    __android_log_print(ANDROID_LOG_VERBOSE, "😇", "registerNatives");
     registerHybrid({
                            makeNativeMethod("initHybrid",
                                             HttpHelper::initHybrid),
@@ -35,14 +33,8 @@ void HttpHelper::registerNatives() {
 
 
 void HttpHelper::installJSIBindings(jstring certPath) {
-    __android_log_print(ANDROID_LOG_VERBOSE, "😇", "registerJsiBindings");
-    jsi::Object webSocketsObject = jsi::Object(*runtime_);
-    //std::shared_ptr<jsi::Object> sharedObj = std::make_shared<jsi::Object>(webSocketsObject);
-
     http = new jsiHttp::JsiHttp(runtime_, jsCallInvoker_);
-    http->installJSIBindings(make_local(certPath)->toStdString(), &webSocketsObject);
-
-    runtime_->global().setProperty(*runtime_, "jsiHttp", std::move(webSocketsObject));
+    http->installJSIBindings(make_local(certPath)->toStdString());
 }
 
 
@@ -61,7 +53,6 @@ TSelf HttpHelper::initHybrid(
         jni::alias_ref<facebook::react::CallInvokerHolder::javaobject>
         jsCallInvokerHolder) {
 
-    __android_log_write(ANDROID_LOG_INFO, "🥲", "initHybrid...");
     auto jsCallInvoker = jsCallInvokerHolder->cthis()->getCallInvoker();
     return makeCxxInstance(jThis, (jsi::Runtime *) jsContext, jsCallInvoker);
 }

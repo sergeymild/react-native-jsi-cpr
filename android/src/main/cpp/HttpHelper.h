@@ -5,7 +5,6 @@
 #include <fbjni/fbjni.h>
 #include <jsi/jsi.h>
 #include <ReactCommon/CallInvokerHolder.h>
-#include <map>
 #include "JsiHttp.h"
 
 class HttpHelper : public facebook::jni::HybridClass<HttpHelper> {
@@ -27,7 +26,6 @@ private:
     facebook::jsi::Runtime *runtime_;
     jsiHttp::JsiHttp *http;
     std::shared_ptr<facebook::react::CallInvoker> jsCallInvoker_;
-    std::map<std::string, std::shared_ptr<facebook::jsi::Function>> webSocketCallbacks_;
     explicit HttpHelper(
             facebook::jni::alias_ref<HttpHelper::jhybridobject> jThis,
             facebook::jsi::Runtime *rt,

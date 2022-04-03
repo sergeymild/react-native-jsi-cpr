@@ -16,7 +16,7 @@ JsiHttp::JsiHttp(
               pool = new ThreadPool();
           }
 
-void JsiHttp::installJSIBindings(std::string cPath, facebook::jsi::Object *jsObject) {
+void JsiHttp::installJSIBindings(std::string cPath) {
     this->certPath = cPath;
 
     auto makeHttpRequest = jsi::Function::createFromHostFunction(
@@ -55,8 +55,10 @@ void JsiHttp::installJSIBindings(std::string cPath, facebook::jsi::Object *jsObj
             });
 
 
-    jsObject->setProperty(*runtime_, "httpCancelRequest", std::move(httpCancelRequest));
-    jsObject->setProperty(*runtime_, "makeHttpRequest", std::move(makeHttpRequest));
+    jsi::Object jsObject = jsi::Object(*runtime_);
+    jsObject.setProperty(*runtime_, "httpCancelRequest", std::move(httpCancelRequest));
+    jsObject.setProperty(*runtime_, "makeHttpRequest", std::move(makeHttpRequest));
+    runtime_->global().setProperty(*runtime_, "jsiHttp", std::move(jsObject));
 }
 
 
