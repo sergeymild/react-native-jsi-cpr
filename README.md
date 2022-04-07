@@ -1,6 +1,6 @@
 # react-native-jsi-cpr
 
-React Native JSI cpr HTTP client
+React Native JSI wrapper for [cpr](https://github.com/libcpr/cpr) curl HTTP client
 
 ###Features
 - High performance because everything is written in C++ (even the JS functions have C++ bodies!)
