@@ -109,16 +109,17 @@ http.cancelRequest('uniqueRequestId')
   errorInterceptor: (error) => error
 }
 
-// POST, PATCH, PUT, DELETE
+// Only applicable for request methods 'PUT', 'POST', 'DELETE' and 'PATCH'
 {
-  // `data` is the data to be sent as the request body
-  // Only applicable for request methods 'PUT', 'POST', 'DELETE' and 'PATCH'
+  // syntax for `json`
   json: {
     firstName: 'Fred'
   }
 
+  // syntax for `string`
   string: 'Fred'
 
+  // syntax for `formUrlEncoded`
   formUrlEncoded: {
     firstName: 'Fred'
   }
