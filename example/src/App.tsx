@@ -17,7 +17,7 @@ const httpbin = new JsiHttp(
 const beceptor = new JsiHttp(
   {
     skipResponseHeaders: false,
-    baseUrl: 'https://b2d2-212-50-119-205.ngrok.io',
+    baseUrl: 'https://3a0a-212-50-119-205.ngrok.io',
   },
   true
 );
@@ -31,14 +31,8 @@ export default function App() {
         style={styles.button}
         onPress={async () => {
           const response = await launchImageLibrary({ mediaType: 'photo' });
-          console.log('[App.]', response.assets[0].uri);
-
           const r = await beceptor.post('upload', {
-            dataType: 'formData',
-            data: {
-              file: { name: 'file', path: response.assets![0].uri! },
-              pas: 'ds',
-            },
+            formData: [{path: response.assets![0].uri!, name: 'file'}, {path: response.assets![0].uri!, name: 'file2'}, {name: 's', value: 's'}]
           });
           console.log('[App.upload]', JSON.stringify(r));
         }}
@@ -50,8 +44,7 @@ export default function App() {
         style={styles.button}
         onPress={async () => {
           const r = await beceptor.patch('patch', {
-            dataType: 'json',
-            data: {
+            json: {
               str: 'one',
               num: 2,
               bool: true,
@@ -67,8 +60,7 @@ export default function App() {
         style={styles.button}
         onPress={async () => {
           const r = await beceptor.delete('delete', {
-            dataType: 'json',
-            data: {
+            json: {
               str: 'one',
               num: 2,
               bool: true,
@@ -117,8 +109,7 @@ export default function App() {
         onPress={async () => {
           beceptor
             .post('post', {
-              dataType: 'formUrlEncoded',
-              data: {
+              formUrlEncoded: {
                 deviceId: 'some',
                 email: 'se@y.ru',
               },
@@ -128,7 +119,7 @@ export default function App() {
             });
         }}
       >
-        <Text>post</Text>
+        <Text>POST(formUrlEncoded)</Text>
       </TouchableOpacity>
     </View>
   );

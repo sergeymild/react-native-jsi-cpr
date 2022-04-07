@@ -21,11 +21,7 @@ export type ParamsSerializer = (params: Queries | undefined | null) => string;
 
 export type ContentType = 'string' | 'json' | 'formUrlEncoded' | 'formData';
 
-type FileDataType =
-  | Partial<Record<string, string | number | boolean>>
-  | {
-      file?: { name: string; path: string };
-    };
+type FileDataType = ({path: string, name: string} | {name: string, value: string})[]
 
 export type PostParams = Partial<Omit<JsiRequest, 'url' | 'method'>> &
   (WithFile | WithString | WithJson | WithFormUrlEncoded);
@@ -38,26 +34,22 @@ export type DeleteParams = Partial<Omit<JsiRequest, 'url' | 'method'>> &
 export type WithData = PostParams | DeleteParams | WithFormUrlEncoded;
 
 export type WithFile = {
-  dataType: 'formData';
-  data?: FileDataType;
+  formData?: FileDataType;
 };
 
 export type WithString = {
-  dataType: 'string';
-  data?: string;
+  string?: string;
 };
 
 export type WithFormUrlEncoded = {
-  dataType: 'formUrlEncoded';
-  data?: Record<
+  formUrlEncoded?: Record<
     string,
     string | number | boolean | Array<string | number | boolean>
   >;
 };
 
 export type WithJson = {
-  dataType: 'json';
-  data?: string | object;
+  json?: string | object;
 };
 
 interface BaseParams {

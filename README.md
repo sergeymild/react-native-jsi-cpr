@@ -41,8 +41,8 @@ if (getResponse.type === 'error') {
 
 //simple post request
 const postResponse = await http.post<any>('/post', {
-  dataType: 'json', // also may be 'string' | 'json' | 'formUrlEncoded' | 'formData'
-  data: {
+  // also may be 'string' | 'json' | 'formUrlEncoded' | 'formData'
+  json: {
     firstName: 'Fred',
     lastName: 'Flintstone'
   }
@@ -111,20 +111,26 @@ http.cancelRequest('uniqueRequestId')
 
 // POST, PATCH, PUT, DELETE
 {
-  // type of data which will be pass to server 'string' | 'json' | 'formUrlEncoded' | 'formData'
-  dataType: 'json',
   // `data` is the data to be sent as the request body
   // Only applicable for request methods 'PUT', 'POST', 'DELETE' and 'PATCH'
-  data: {
+  json: {
     firstName: 'Fred'
-  },
+  }
 
+  string: 'Fred'
+
+  formUrlEncoded: {
+    firstName: 'Fred'
+  }
 
   // syntax for `formData`
-  dataType: 'formData',
-  data: {
-    file: {name: 'fileName', path: 'absoluteFilePath'}
-  }
+  formData: [
+    // for file
+    {name: 'fileName', path: 'absoluteFilePath'},
+    {name: 'fileName2', path: 'absoluteFilePath'},
+    // for other parameters
+    {name: 'fileName', value: 'value'}
+  ]
 }
 
 ```

@@ -29,4 +29,6 @@ jsi::Object convertNSDictionaryToJSIObject(jsi::Runtime &runtime, std::map<std::
 facebook::jsi::Object convertResponseToJsiObject(facebook::jsi::Runtime &runtime, const Response& response);
 std::vector<cpr::Part> convertJSIObjectToMultipart(jsi::Runtime &runtime, jsi::Value& data);
 
+cpr::Body* prepareRequestBody(jsi::Runtime &runtime, jsi::Value& data, cpr::Header *headers);
+
 }

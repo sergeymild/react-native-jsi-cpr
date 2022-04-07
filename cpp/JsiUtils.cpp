@@ -69,47 +69,87 @@ std::string errorCodeToString(const cpr::Error& error) {
 //MARK: convertNSDictionaryToJSIObject
 std::vector<cpr::Part>
 convertJSIObjectToMultipart(jsi::Runtime &runtime, jsi::Value& data) {
-    auto dataObject = data.asObject(runtime);
-    jsi::Array propertyNames = dataObject.getPropertyNames(runtime);
-    size_t size = propertyNames.size(runtime);
-
     std::vector<cpr::Part> parts;
-    for (size_t i = 0; i < size; i++) {
-        jsi::String name = propertyNames.getValueAtIndex(runtime, i).getString(runtime);
-        auto c_name = name.utf8(runtime);
+    
+    auto dataObject = data.asObject(runtime);
+    if (!dataObject.hasProperty(runtime, "formData")) return parts;
+    auto rawArray = dataObject.getProperty(runtime, "formData").asObject(runtime);
+    if (!rawArray.isArray(runtime)) {
+        throw "dataObjectMustBeAnArray";
+    }
+
+    auto arrayOfData = rawArray.asArray(runtime);
+    //jsi::Array arrayOfDataNames = arrayOfData.getPropertyNames(runtime);
+    size_t arrayOfDataSize = arrayOfData.size(runtime);
+    
+    
+    
+    for (size_t i = 0; i < arrayOfDataSize; i++) {
+        auto dataObject = arrayOfData.getValueAtIndex(runtime, i).asObject(runtime);
+        auto name = dataObject.getProperty(runtime, "name").asString(runtime).utf8(runtime);
         
-        jsi::Value value = dataObject.getProperty(runtime, name);
-        if (value.isUndefined() || value.isNull()) continue;
-        
-        if (c_name == "file") {
-            jsi::Object fileObject = value.asObject(runtime);
-            std::string fileName = fileObject.getProperty(runtime, "name").asString(runtime).utf8(runtime);
-            std::string filePath = fileObject.getProperty(runtime, "path").asString(runtime).utf8(runtime);
+        // file
+        if (dataObject.hasProperty(runtime, "path")) {
+            auto path = dataObject.getProperty(runtime, "path").asString(runtime).utf8(runtime);
             // on IOS remove file:// scheme
-            if (filePath.rfind("file://") == 0) {
-                filePath = filePath.replace(0, 7, "");
+            if (path.rfind("file://") == 0) path = path.replace(0, 7, "");
+            parts.push_back(cpr::Part(name, cpr::File(path)));
+        }
+        
+        // rest parameters
+        if (dataObject.hasProperty(runtime, "value")) {
+            auto value = dataObject.getProperty(runtime, "value");
+            if (value.isString()) {
+                std::string v = value.asString(runtime).utf8(runtime);
+                parts.push_back(cpr::Part(name, v));
             }
-            parts.push_back(cpr::Part(fileName, cpr::File(filePath)));
+            
+            if (value.isNumber()) {
+                long v = lrint(value.asNumber());
+                parts.push_back(cpr::Part(name, v));
+            }
+            
+            if (value.isBool()) {
+                parts.push_back(cpr::Part(name, value.getBool() ? "1" : "0"));
+            }
             continue;
-        }
-        
-        if (value.isString()) {
-            std::string v = value.asString(runtime).utf8(runtime);
-            parts.push_back(cpr::Part(c_name, v));
-        }
-        
-        if (value.isNumber()) {
-            long v = lrint(value.asNumber());
-            parts.push_back(cpr::Part(c_name, v));
-        }
-        
-        if (value.isBool()) {
-            parts.push_back(cpr::Part(c_name, value.getBool() ? "1" : "0"));
         }
     }
 
     return parts;
 }
+
+cpr::Body* prepareRequestBody(jsi::Runtime &runtime, jsi::Value& data, cpr::Header *headers) {
+    cpr::Body* body = nullptr;
+    
+    jsi::Object dataObject = data.asObject(runtime);
+    
+    if (dataObject.hasProperty(runtime, "json")) {
+        auto json = dataObject.getProperty(runtime, "json");
+        if (!json.isUndefined() && !json.isNull()) {
+            body = new cpr::Body(json.asString(runtime).utf8(runtime));
+            (*headers)["Content-Type"] = "application/json";
+        }
+    }
+    
+    if (dataObject.hasProperty(runtime, "string")) {
+        auto string = dataObject.getProperty(runtime, "string");
+        if (!string.isUndefined() && !string.isNull()) {
+            body = new cpr::Body(string.asString(runtime).utf8(runtime));
+        }
+    }
+    
+    if (dataObject.hasProperty(runtime, "formUrlEncoded")) {
+        auto formUrlEncoded = dataObject.getProperty(runtime, "formUrlEncoded");
+        if (!formUrlEncoded.isUndefined() && !formUrlEncoded.isNull()) {
+            body = new cpr::Body(formUrlEncoded.asString(runtime).utf8(runtime));
+            //(*headers)["Content-Type"] = "application/json";
+        }
+    }
+    
+    return body;
+}
+
 
 //MARK: convertNSDictionaryToJSIObject
 jsi::Object

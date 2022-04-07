@@ -33,8 +33,7 @@ private:
                      const std::string& method,
                      const std::string& baseUrl,
                      const std::string& endpoint,
-                     const std::string& dataType,
-                     const cpr::Header& headers,
+                     cpr::Header *headers,
                      double timeout,
                      bool skipResponseHeaders,
                      jsi::Value&& data);

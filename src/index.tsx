@@ -1,5 +1,4 @@
 import {
-  ContentType,
   DeleteParams,
   Headers,
   JsiDefaultRequest,
@@ -16,6 +15,7 @@ import { buildURL } from './buildURL';
 import { CurlHelper } from './CurlHelper';
 
 import { NativeModules, Platform } from 'react-native';
+
 const LINKING_ERROR =
   `The package 'react-native-jsi-websockets' doesn't seem to be linked. Make sure: \n\n` +
   Platform.select({ ios: "- You have run 'pod install'\n", default: '' }) +
@@ -115,33 +115,29 @@ const processError = async (
   return error;
 };
 
-const prepareDataType = (
-  contentType?: ContentType,
-  config?: Partial<Omit<JsiRequest, 'url' | 'method'>> & WithData
-): any => {
-  if (!config) return undefined;
-  if (!config.data) return undefined;
-  let data: any = config.data;
-  if (contentType === 'json' && typeof config.data === 'object') {
-    data = JSON.stringify(config.data);
+const prepareDataType = (config?: Partial<Omit<JsiRequest, 'url' | 'method'>> & WithData) => {
+  if (!config) return;
+  if ('json' in config) {
+    // @ts-ignore
+    config.data = {json: JSON.stringify(config.json)}
   }
 
-  if (config.dataType === 'formUrlEncoded') {
-    data = buildURL('', data, config.params, null).replace('?', '');
+  if ('string' in config) {
+    // @ts-ignore
+    config.data = {string: config.string}
   }
 
-  if (config.dataType === 'string' && typeof data !== 'string') {
-    throw new Error('data must be a string');
+  if ('formData' in config) {
+    // @ts-ignore
+    config.data = {formData: config.formData}
   }
 
-  return data;
-};
-
-const prepareContentType = (
-  config?: Partial<Omit<JsiRequest, 'url' | 'method'>> & WithData
-): ContentType | undefined => {
-  if (!config) return 'json';
-  return config.dataType;
+  if ('formUrlEncoded' in config) {
+    // @ts-ignore
+    config.data = {
+      formUrlEncoded: buildURL('', config.formUrlEncoded, config.params, null).replace('?', '')
+    }
+  }
 };
 
 export const defaultLogRequest = (params: Readonly<Partial<JsiRequest>>) => {
@@ -257,52 +253,40 @@ export class JsiHttp {
   }
 
   delete<T = any>(url: string, config?: DeleteParams): Promise<JsiResponse<T>> {
-    let contentType = prepareContentType(config);
-    let data = prepareDataType(contentType, config);
+    prepareDataType(config)
     return this.request<T>({
       ...config,
-      data: data,
       method: JsiMethod.delete,
-      dataType: contentType,
       url: url,
       headers: getHeaders(config),
     });
   }
 
   post<T = any>(url: string, config: PostParams): Promise<JsiResponse<T>> {
-    let contentType = prepareContentType(config);
-    let data = prepareDataType(contentType, config);
+    prepareDataType(config)
     return this.request<T>({
       ...config,
-      data: data,
       method: JsiMethod.post,
-      dataType: contentType,
       url: url,
       headers: getHeaders(config),
     });
   }
 
   put<T = any>(url: string, config: PutParams): Promise<JsiResponse<T>> {
-    let contentType = prepareContentType(config);
-    let data = prepareDataType(contentType, config);
+    prepareDataType(config)
     return this.request<T>({
       ...config,
-      data: data,
       method: JsiMethod.put,
-      dataType: contentType,
       url: url,
       headers: getHeaders(config),
     });
   }
 
   patch<T = any>(url: string, config: PatchParams): Promise<JsiResponse<T>> {
-    let contentType = prepareContentType(config);
-    let data = prepareDataType(contentType, config);
+    prepareDataType(config)
     return this.request<T>({
       ...config,
-      data: data,
       method: JsiMethod.patch,
-      dataType: contentType,
       url: url,
       headers: getHeaders(config),
     });

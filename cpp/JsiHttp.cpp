@@ -70,11 +70,6 @@ void JsiHttp::prepareForRequest(jsi::Runtime &runtime, const jsi::Value *args) {
     auto m = requestObject.getProperty(runtime, "method").asString(runtime).utf8(runtime);
     auto base = requestObject.getProperty(runtime, "baseUrl").asString(runtime).utf8(runtime);
     auto end = requestObject.getProperty(runtime, "url").asString(runtime).utf8(runtime);
-    jsi::Value rawDataType = requestObject.getProperty(runtime, "dataType");
-    string dataType = "";
-    if (!rawDataType.isUndefined() && !rawDataType.isNull()) {
-        dataType = rawDataType.asString(runtime).utf8(runtime);
-    }
 
     cpr::Header cprHeaders;
 
@@ -89,18 +84,6 @@ void JsiHttp::prepareForRequest(jsi::Runtime &runtime, const jsi::Value *args) {
             jsi::String value = headers.getProperty(runtime, name).asString(runtime);
             cprHeaders[name.utf8(runtime)] = value.utf8(runtime);
         }
-    }
-    
-    if (dataType == "json") {
-        cprHeaders["Content-Type"] = "application/json";
-    }
-    
-    if (dataType == "formUrlEncoded") {
-        cprHeaders["Content-Type"] = "application/x-www-form-urlencoded";
-    }
-    
-    if (dataType == "string") {
-        cprHeaders["Content-Type"] = "text/plain; charset=UTF-8";
     }
 
     auto timeoutProperty = requestObject.getProperty(runtime, "timeout");
@@ -119,7 +102,7 @@ void JsiHttp::prepareForRequest(jsi::Runtime &runtime, const jsi::Value *args) {
 //        dataString = dataObject.asString(runtime).utf8(runtime);
 //    }
 
-    makeRequest(uniqueId, m, base, end, dataType, cprHeaders, timeout, skipResponseHeaders, std::move(dataObject));
+    makeRequest(uniqueId, m, base, end, &cprHeaders, timeout, skipResponseHeaders, std::move(dataObject));
 }
 
 
@@ -130,8 +113,7 @@ void JsiHttp::makeRequest(const string& uniqueId,
                           const string& method,
                           const string& baseUrl,
                           const string& endpoint,
-                          const std::string& dataType,
-                          const cpr::Header& headers,
+                          cpr::Header *headers,
                           double timeout,
                           bool skipResponseHeaders,
                           jsi::Value&& data) {
@@ -143,17 +125,15 @@ void JsiHttp::makeRequest(const string& uniqueId,
     std::vector<cpr::Part> multipartParts;
     
     
-    if ((method == "POST" || method == "PATCH" || method == "DELETE") && !data.isUndefined()) {
-        if (dataType == "json" || dataType == "string") {
-            body = new cpr::Body(data.asString(*runtime_).utf8(*runtime_));
-        }
-        
-        if (dataType == "formData") {
+    if ((method == "POST" || method == "PATCH" || method == "DELETE") && !data.isUndefined() && !data.isNull()) {
+        //body = new cpr::Body(data.asString(*runtime_).utf8(*runtime_));
+        body = jsiHttp::prepareRequestBody(*runtime_, data, headers);
+        if (body == nullptr) {
             multipartParts = convertJSIObjectToMultipart(*runtime_, data);
         }
     }
 
-    pool->queueWork([=]() {
+    pool->queueWork([=, h = *headers]() {
                 std::cout << uniqueId + " queueWork" << std::endl;
 
                 cpr::Timeout time(timeout);
@@ -166,7 +146,7 @@ void JsiHttp::makeRequest(const string& uniqueId,
                 if (multipartParts.size() > 0) {
                     session.SetMultipart(cpr::Multipart(multipartParts));
                 }
-                session.SetHeader(headers);
+                session.SetHeader(h);
                 cpr::Response r = session.ByMethodName(method);
                 processRequest(uniqueId, skipResponseHeaders, timeout, r);
 
