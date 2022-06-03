@@ -30,5 +30,7 @@ facebook::jsi::Object convertResponseToJsiObject(facebook::jsi::Runtime &runtime
 std::vector<cpr::Part> convertJSIObjectToMultipart(jsi::Runtime &runtime, jsi::Value& data);
 
 cpr::Body* prepareRequestBody(jsi::Runtime &runtime, jsi::Value& data, cpr::Header *headers);
+cpr::Response ByMethodName(const std::string methodName, cpr::Session *session);
+void EnableOrDisableSSLVerification(const std::string certPath);
 
 }

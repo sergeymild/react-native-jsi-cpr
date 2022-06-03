@@ -1,0 +1,34 @@
+diff --git a/cpr/include/cpr/cpr.h b/cpr/include/cpr/cpr.h
+--- a/include/cpr/cpr.h	(revision df31d9327a68a80635beeff55b1df8bd07d2d3ea)
++++ b/include/cpr/cpr.h	(date 1650986332260)
+@@ -8,7 +8,6 @@
+ #include "cpr/connect_timeout.h"
+ #include "cpr/cookies.h"
+ #include "cpr/cprtypes.h"
+-#include "cpr/cprver.h"
+ #include "cpr/curl_container.h"
+ #include "cpr/curlholder.h"
+ #include "cpr/digest.h"
+
+diff --git a/include/cpr/multipart.h b/include/cpr/multipart.h
+--- a/include/cpr/multipart.h	(revision df31d9327a68a80635beeff55b1df8bd07d2d3ea)
++++ b/include/cpr/multipart.h	(date 1650987040566)
+@@ -70,7 +70,7 @@
+ class Multipart {
+   public:
+     Multipart(const std::initializer_list<Part>& parts);
+-
++    Multipart(const std::vector<Part> parts);
+     std::vector<Part> parts;
+ };
+
+
+diff --git a/cpr/multipart.cpp b/cpr/multipart.cpp
+--- a/cpr/multipart.cpp	(revision df31d9327a68a80635beeff55b1df8bd07d2d3ea)
++++ b/cpr/multipart.cpp	(date 1650987005862)
+@@ -2,4 +2,5 @@
+
+ namespace cpr {
+ Multipart::Multipart(const std::initializer_list<Part>& p_parts) : parts{p_parts} {}
++Multipart::Multipart(const std::vector<Part> p_parts) : parts(p_parts) {}
+ } // namespace cpr

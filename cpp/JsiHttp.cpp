@@ -138,7 +138,7 @@ void JsiHttp::makeRequest(const string& uniqueId,
 
                 cpr::Timeout time(timeout);
                 cpr::Session session;
-                session.EnableOrDisableSSLVerification(this->certPath);
+                jsiHttp::EnableOrDisableSSLVerification(this->certPath);
         
                 session.SetOption(cpr::Url{baseUrl + endpoint});
                 session.SetTimeout(time);
@@ -147,7 +147,7 @@ void JsiHttp::makeRequest(const string& uniqueId,
                     session.SetMultipart(cpr::Multipart(multipartParts));
                 }
                 session.SetHeader(h);
-                cpr::Response r = session.ByMethodName(method);
+                cpr::Response r = jsiHttp::ByMethodName(method, &session);
                 processRequest(uniqueId, skipResponseHeaders, timeout, r);
 
                 std::cout << uniqueId + " endWork" << std::endl;

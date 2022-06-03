@@ -1,6 +1,7 @@
 #import <jsi/jsi.h>
 #include "map"
 #include "cpr/cpr.h"
+#include <curl/curl.h>
 
 using namespace facebook;
 
@@ -117,6 +118,32 @@ convertJSIObjectToMultipart(jsi::Runtime &runtime, jsi::Value& data) {
     }
 
     return parts;
+}
+
+cpr::Response ByMethodName(const std::string methodName, cpr::Session *session) {
+    if (methodName == "GET") {
+        return session->Get();
+    } else if (methodName == "POST") {
+        return session->Post();
+    } else if (methodName == "PATCH") {
+        return session->Patch();
+    } else if (methodName == "PUT") {
+        return session->Put();
+    } else if (methodName == "DELETE") {
+        return session->Delete();
+    }
+    return session->Get();
+}
+
+void EnableOrDisableSSLVerification(const std::string certPath) {
+    #if defined(ONANDROID)
+        if (!certPath.empty()) {
+          curl_easy_setopt(GetCurlHolder()->handle, CURLOPT_CAINFO, certPath.c_str());
+        } else {
+          curl_easy_setopt(GetCurlHolder()->handle, CURLOPT_SSL_VERIFYPEER, OFF);
+          curl_easy_setopt(GetCurlHolder()->handle, CURLOPT_SSL_VERIFYHOST, 0L);
+        }
+    #endif
 }
 
 cpr::Body* prepareRequestBody(jsi::Runtime &runtime, jsi::Value& data, cpr::Header *headers) {
