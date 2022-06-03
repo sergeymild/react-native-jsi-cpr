@@ -17,7 +17,7 @@ const httpbin = new JsiHttp(
 const beceptor = new JsiHttp(
   {
     skipResponseHeaders: false,
-    baseUrl: 'https://3a0a-212-50-119-205.ngrok.io',
+    baseUrl: 'https://7ea7-62-228-134-206.eu.ngrok.io',
   },
   true
 );
@@ -93,6 +93,7 @@ export default function App() {
       <TouchableOpacity
         style={styles.button}
         onPress={() => {
+          console.log('[App.BAD_SSL_CHECK]', )
           httpbin
             .get('', {
               baseUrl: 'https://expired.badssl.com',

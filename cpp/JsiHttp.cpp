@@ -120,11 +120,11 @@ void JsiHttp::makeRequest(const string& uniqueId,
 
 
     auto full = baseUrl + endpoint;
-    
+
     cpr::Body* body = nullptr;
     std::vector<cpr::Part> multipartParts;
-    
-    
+
+
     if ((method == "POST" || method == "PATCH" || method == "DELETE") && !data.isUndefined() && !data.isNull()) {
         //body = new cpr::Body(data.asString(*runtime_).utf8(*runtime_));
         body = jsiHttp::prepareRequestBody(*runtime_, data, headers);
@@ -138,8 +138,8 @@ void JsiHttp::makeRequest(const string& uniqueId,
 
                 cpr::Timeout time(timeout);
                 cpr::Session session;
-                jsiHttp::EnableOrDisableSSLVerification(this->certPath);
-        
+                jsiHttp::EnableOrDisableSSLVerification(this->certPath, &session);
+
                 session.SetOption(cpr::Url{baseUrl + endpoint});
                 session.SetTimeout(time);
                 if (body != nullptr) session.SetBody(std::move(*body));

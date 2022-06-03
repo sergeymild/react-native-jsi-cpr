@@ -71,7 +71,7 @@ std::string errorCodeToString(const cpr::Error& error) {
 std::vector<cpr::Part>
 convertJSIObjectToMultipart(jsi::Runtime &runtime, jsi::Value& data) {
     std::vector<cpr::Part> parts;
-    
+
     auto dataObject = data.asObject(runtime);
     if (!dataObject.hasProperty(runtime, "formData")) return parts;
     auto rawArray = dataObject.getProperty(runtime, "formData").asObject(runtime);
@@ -82,13 +82,13 @@ convertJSIObjectToMultipart(jsi::Runtime &runtime, jsi::Value& data) {
     auto arrayOfData = rawArray.asArray(runtime);
     //jsi::Array arrayOfDataNames = arrayOfData.getPropertyNames(runtime);
     size_t arrayOfDataSize = arrayOfData.size(runtime);
-    
-    
-    
+
+
+
     for (size_t i = 0; i < arrayOfDataSize; i++) {
         auto dataObject = arrayOfData.getValueAtIndex(runtime, i).asObject(runtime);
         auto name = dataObject.getProperty(runtime, "name").asString(runtime).utf8(runtime);
-        
+
         // file
         if (dataObject.hasProperty(runtime, "path")) {
             auto path = dataObject.getProperty(runtime, "path").asString(runtime).utf8(runtime);
@@ -96,7 +96,7 @@ convertJSIObjectToMultipart(jsi::Runtime &runtime, jsi::Value& data) {
             if (path.rfind("file://") == 0) path = path.replace(0, 7, "");
             parts.push_back(cpr::Part(name, cpr::File(path)));
         }
-        
+
         // rest parameters
         if (dataObject.hasProperty(runtime, "value")) {
             auto value = dataObject.getProperty(runtime, "value");
@@ -104,12 +104,12 @@ convertJSIObjectToMultipart(jsi::Runtime &runtime, jsi::Value& data) {
                 std::string v = value.asString(runtime).utf8(runtime);
                 parts.push_back(cpr::Part(name, v));
             }
-            
+
             if (value.isNumber()) {
                 long v = lrint(value.asNumber());
                 parts.push_back(cpr::Part(name, v));
             }
-            
+
             if (value.isBool()) {
                 parts.push_back(cpr::Part(name, value.getBool() ? "1" : "0"));
             }
@@ -135,22 +135,22 @@ cpr::Response ByMethodName(const std::string methodName, cpr::Session *session) 
     return session->Get();
 }
 
-void EnableOrDisableSSLVerification(const std::string certPath) {
+void EnableOrDisableSSLVerification(const std::string certPath, cpr::Session *session) {
     #if defined(ONANDROID)
         if (!certPath.empty()) {
-          curl_easy_setopt(GetCurlHolder()->handle, CURLOPT_CAINFO, certPath.c_str());
+          curl_easy_setopt(session->GetCurlHolder().get()->handle, CURLOPT_CAINFO, certPath.c_str());
         } else {
-          curl_easy_setopt(GetCurlHolder()->handle, CURLOPT_SSL_VERIFYPEER, OFF);
-          curl_easy_setopt(GetCurlHolder()->handle, CURLOPT_SSL_VERIFYHOST, 0L);
+          curl_easy_setopt(session->GetCurlHolder().get()->handle, CURLOPT_SSL_VERIFYPEER, 0L);
+          curl_easy_setopt(session->GetCurlHolder().get()->handle, CURLOPT_SSL_VERIFYHOST, 0L);
         }
     #endif
 }
 
 cpr::Body* prepareRequestBody(jsi::Runtime &runtime, jsi::Value& data, cpr::Header *headers) {
     cpr::Body* body = nullptr;
-    
+
     jsi::Object dataObject = data.asObject(runtime);
-    
+
     if (dataObject.hasProperty(runtime, "json")) {
         auto json = dataObject.getProperty(runtime, "json");
         if (!json.isUndefined() && !json.isNull()) {
@@ -158,14 +158,14 @@ cpr::Body* prepareRequestBody(jsi::Runtime &runtime, jsi::Value& data, cpr::Head
             (*headers)["Content-Type"] = "application/json";
         }
     }
-    
+
     if (dataObject.hasProperty(runtime, "string")) {
         auto string = dataObject.getProperty(runtime, "string");
         if (!string.isUndefined() && !string.isNull()) {
             body = new cpr::Body(string.asString(runtime).utf8(runtime));
         }
     }
-    
+
     if (dataObject.hasProperty(runtime, "formUrlEncoded")) {
         auto formUrlEncoded = dataObject.getProperty(runtime, "formUrlEncoded");
         if (!formUrlEncoded.isUndefined() && !formUrlEncoded.isNull()) {
@@ -173,7 +173,7 @@ cpr::Body* prepareRequestBody(jsi::Runtime &runtime, jsi::Value& data, cpr::Head
             //(*headers)["Content-Type"] = "application/json";
         }
     }
-    
+
     return body;
 }
 

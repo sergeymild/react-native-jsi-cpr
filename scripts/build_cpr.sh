@@ -2,7 +2,7 @@ rm -rf ./cpr
 
 git clone https://github.com/libcpr/cpr
 cd cpr
-git apply ../cpr1.patch
+#git apply ../cpr1.patch
 cd ..
 
 rm -rf ../cpp/cpr

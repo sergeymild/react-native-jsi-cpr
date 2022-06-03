@@ -1,18 +1,16 @@
 #ifndef CPR_SSLOPTIONS_H
 #define CPR_SSLOPTIONS_H
 
+#include <memory>
 #include <string>
+#include <vector>
 
 #include <curl/curl.h>
 
 #include <utility>
 
-#define __LIBCURL_VERSION_GTE(major, minor) \
-    ((LIBCURL_VERSION_MAJOR > (major)) ||   \
-     ((LIBCURL_VERSION_MAJOR == (major)) && (LIBCURL_VERSION_MINOR >= (minor))))
-#define __LIBCURL_VERSION_LT(major, minor) \
-    ((LIBCURL_VERSION_MAJOR < (major)) ||  \
-     ((LIBCURL_VERSION_MAJOR == (major)) && (LIBCURL_VERSION_MINOR < (minor))))
+#define __LIBCURL_VERSION_GTE(major, minor) ((LIBCURL_VERSION_MAJOR > (major)) || ((LIBCURL_VERSION_MAJOR == (major)) && (LIBCURL_VERSION_MINOR >= (minor))))
+#define __LIBCURL_VERSION_LT(major, minor) ((LIBCURL_VERSION_MAJOR < (major)) || ((LIBCURL_VERSION_MAJOR == (major)) && (LIBCURL_VERSION_MINOR < (minor))))
 
 #ifndef SUPPORT_ALPN
 #define SUPPORT_ALPN __LIBCURL_VERSION_GTE(7, 36)
@@ -62,6 +60,12 @@
 #endif
 #ifndef SUPPORT_SSL_NO_REVOKE
 #define SUPPORT_SSL_NO_REVOKE __LIBCURL_VERSION_GTE(7, 44)
+#endif
+#ifndef SUPPORT_CURLOPT_SSLKEY_BLOB
+#define SUPPORT_CURLOPT_SSLKEY_BLOB __LIBCURL_VERSION_GTE(7, 71)
+#endif
+#ifndef SUPPORT_CURLOPT_SSL_CTX_FUNCTION
+#define SUPPORT_CURLOPT_SSL_CTX_FUNCTION __LIBCURL_VERSION_GTE(7, 11)
 #endif
 
 namespace cpr {
@@ -117,8 +121,7 @@ class KeyFile {
     KeyFile(std::string&& p_filename) : filename(std::move(p_filename)) {}
 
     template <typename FileType, typename PassType>
-    KeyFile(FileType&& p_filename, PassType p_password)
-            : filename(std::forward<FileType>(p_filename)), password(std::move(p_password)) {}
+    KeyFile(FileType&& p_filename, PassType p_password) : filename(std::forward<FileType>(p_filename)), password(std::move(p_password)) {}
 
     virtual ~KeyFile() = default;
 
@@ -130,14 +133,14 @@ class KeyFile {
     }
 };
 
+#if SUPPORT_CURLOPT_SSLKEY_BLOB
 class KeyBlob {
   public:
     // NOLINTNEXTLINE(google-explicit-constructor, hicpp-explicit-conversions)
     KeyBlob(std::string&& p_blob) : blob(std::move(p_blob)) {}
 
     template <typename BlobType, typename PassType>
-    KeyBlob(BlobType&& p_blob, PassType p_password)
-            : blob(std::forward<BlobType>(p_blob)), password(std::move(p_password)) {}
+    KeyBlob(BlobType&& p_blob, PassType p_password) : blob(std::forward<BlobType>(p_blob)), password(std::move(p_password)) {}
 
     virtual ~KeyBlob() = default;
 
@@ -148,6 +151,7 @@ class KeyBlob {
         return "PEM";
     }
 };
+#endif
 
 using PemKey = KeyFile;
 
@@ -157,8 +161,7 @@ class DerKey : public KeyFile {
     DerKey(std::string&& p_filename) : KeyFile(std::move(p_filename)) {}
 
     template <typename FileType, typename PassType>
-    DerKey(FileType&& p_filename, PassType p_password)
-            : KeyFile(std::forward<FileType>(p_filename), std::move(p_password)) {}
+    DerKey(FileType&& p_filename, PassType p_password) : KeyFile(std::forward<FileType>(p_filename), std::move(p_password)) {}
 
     virtual ~DerKey() = default;
 
@@ -318,6 +321,16 @@ class CaPath {
     std::string filename;
 };
 
+#if SUPPORT_CURLOPT_SSL_CTX_FUNCTION
+class CaBuffer {
+  public:
+    // NOLINTNEXTLINE(google-explicit-constructor, hicpp-explicit-conversions)
+    CaBuffer(std::string&& p_buffer) : buffer(std::move(p_buffer)) {}
+
+    const std::string buffer;
+};
+#endif
+
 // specify a Certificate Revocation List file
 class Crl {
   public:
@@ -379,7 +392,7 @@ class SslFastStart {
 #endif
 
 class NoRevoke {
-public:
+  public:
     NoRevoke() = default;
     // NOLINTNEXTLINE(google-explicit-constructor, hicpp-explicit-conversions)
     NoRevoke(bool p_enabled) : enabled(p_enabled) {}
@@ -397,7 +410,9 @@ struct SslOptions {
     std::string cert_file;
     std::string cert_type;
     std::string key_file;
+#if SUPPORT_CURLOPT_SSLKEY_BLOB
     std::string key_blob;
+#endif
     std::string key_type;
     std::string key_pass;
     std::string pinned_public_key;
@@ -419,6 +434,9 @@ struct SslOptions {
 #endif
     std::string ca_info;
     std::string ca_path;
+#if SUPPORT_CURLOPT_SSL_CTX_FUNCTION
+    std::string ca_buffer;
+#endif
     std::string crl_file;
     std::string ciphers;
 #if SUPPORT_TLSv13_CIPHERS
@@ -437,11 +455,13 @@ struct SslOptions {
         key_type = opt.GetKeyType();
         key_pass = opt.password;
     }
+#if SUPPORT_CURLOPT_SSLKEY_BLOB
     void SetOption(const ssl::KeyBlob& opt) {
         key_blob = opt.blob;
         key_type = opt.GetKeyType();
         key_pass = opt.password;
     }
+#endif
     void SetOption(const ssl::PinnedPublicKey& opt) {
         pinned_public_key = opt.pinned_public_key;
     }
@@ -534,6 +554,11 @@ struct SslOptions {
     void SetOption(const ssl::CaPath& opt) {
         ca_path = opt.filename;
     }
+#if SUPPORT_CURLOPT_SSL_CTX_FUNCTION
+    void SetOption(const ssl::CaBuffer& opt) {
+        ca_buffer = opt.buffer;
+    }
+#endif
     void SetOption(const ssl::Crl& opt) {
         crl_file = opt.filename;
     }
