@@ -9,6 +9,7 @@ import {
   PatchParams,
   PostParams,
   PutParams,
+  SimpleRequest,
   WithData,
 } from './types';
 import { buildURL } from './buildURL';
@@ -142,8 +143,12 @@ const prepareDataType = (config?: Partial<Omit<JsiRequest, 'url' | 'method'>> & 
   }
 };
 
-export const defaultLogRequest: LogRequest = (params: Readonly<Partial<JsiRequest>>) => {
-  console.log('[REQUEST]', new CurlHelper(params).generateCommand());
+export const defaultLogRequest: LogRequest = (request: SimpleRequest) => {
+  if ('data' in request && request.data) {
+    //@ts-ignore
+    request.data = request.data?.json ?? request.data?.formData ?? request.data?.string
+  }
+  console.log('[REQUEST]', new CurlHelper(request).generateCommand());
 };
 
 export const defaultLogResponse: LogResponse = (

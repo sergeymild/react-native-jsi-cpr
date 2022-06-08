@@ -15,7 +15,7 @@ type Query = string | number | boolean;
 export type Queries = Record<
   string,
   string | number | boolean | Query[] | undefined | null
->;
+  >;
 export type Headers = Record<string, string>;
 export type ParamsSerializer = (params: Queries | undefined | null) => string;
 
@@ -45,7 +45,7 @@ export type WithFormUrlEncoded = {
   formUrlEncoded?: Record<
     string,
     string | number | boolean | Array<string | number | boolean>
-  >;
+    >;
 };
 
 export type WithJson = {
@@ -69,15 +69,16 @@ export interface JsiRequest extends BaseParams {
   requestId?: string;
 }
 
-export type LogRequest = (request: Readonly<Partial<JsiRequest>>) => void;
+export type SimpleRequest = Partial<Omit<JsiRequest, 'errorInterceptor' | 'paramsSerializer'> & {data?: WithData | string}>
+export type LogRequest = (request: SimpleRequest) => void;
 export type LogError = (error: JsiError) => void;
 export type LogResponse = (
-  request: Readonly<Partial<JsiRequest>>,
+  request: Readonly<SimpleRequest>,
   response: Readonly<JsiResponse<any>>
 ) => void;
 
 export type RequestInterceptor = (
-  request: Partial<JsiRequest>
+  request: SimpleRequest
 ) => Promise<Partial<JsiRequest>>;
 
 export interface JsiDefaultRequest extends BaseParams {
