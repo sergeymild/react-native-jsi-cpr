@@ -17,7 +17,7 @@ const httpbin = new JsiHttp(
 const beceptor = new JsiHttp(
   {
     skipResponseHeaders: false,
-    baseUrl: 'https://7ea7-62-228-134-206.eu.ngrok.io',
+    baseUrl: 'https://cb1d-62-228-134-206.eu.ngrok.io',
   },
   true
 );
@@ -121,6 +121,23 @@ export default function App() {
         }}
       >
         <Text>POST(formUrlEncoded)</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={async () => {
+          beceptor
+            .post('post', {
+              json: {
+                deviceId: 'some',
+                email: 'se@y.ru',
+              },
+            })
+            .then((r) => {
+              console.log('[App.]', r);
+            });
+        }}
+      >
+        <Text>POST(json)</Text>
       </TouchableOpacity>
     </View>
   );
