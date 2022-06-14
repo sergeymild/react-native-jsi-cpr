@@ -100,10 +100,12 @@ const prepareRequestParams = (
 };
 
 const prepareResponse = (response: any) => {
-  if ('data' in response && typeof response.data === 'string') {
+  if ('data' in response && typeof response.data === 'string' && response.data.startsWith('{')) {
     try {
       response.data = JSON.parse(response.data);
-    } catch {}
+    } catch(e) {
+      console.warn('[prepareResponse.error]', e)
+    }
   }
   return response;
 };
@@ -123,16 +125,19 @@ const prepareDataType = (config?: Partial<Omit<JsiRequest, 'url' | 'method'>> & 
   if ('json' in config) {
     // @ts-ignore
     config.data = {json: JSON.stringify(config.json)}
+    delete config.json
   }
 
   if ('string' in config) {
     // @ts-ignore
     config.data = {string: config.string}
+    delete config.string
   }
 
   if ('formData' in config) {
     // @ts-ignore
     config.data = {formData: config.formData}
+    delete config.formData
   }
 
   if ('formUrlEncoded' in config) {
@@ -140,14 +145,11 @@ const prepareDataType = (config?: Partial<Omit<JsiRequest, 'url' | 'method'>> & 
     config.data = {
       formUrlEncoded: buildURL('', config.formUrlEncoded, config.params, null).replace('?', '')
     }
+    delete config.formUrlEncoded
   }
 };
 
 export const defaultLogRequest: LogRequest = (request: SimpleRequest) => {
-  if ('data' in request && request.data) {
-    //@ts-ignore
-    request.data = request.data?.json ?? request.data?.formData ?? request.data?.string
-  }
   console.log('[REQUEST]', new CurlHelper(request).generateCommand());
 };
 
@@ -171,10 +173,17 @@ const processResponse = async (
 ) => {
   try {
     if (defaultConfig.logRequest) {
-      defaultConfig.logRequest?.({
+      const headers = (params.headers ?? {})
+      //@ts-ignore
+      const data = params.data?.json ?? params.data?.formData ?? params.data?.string ?? params.data
+      if ('json' in params) headers['Content-Type'] = 'application/json'
+      const logRequest = {
         ...params,
         url: (params.baseUrl ?? defaultConfig.baseUrl) + params.url,
-      });
+        data,
+        headers
+      }
+      defaultConfig.logRequest?.(logRequest);
     }
     if (error) {
       const processedError = await processError(defaultConfig, params, error);
