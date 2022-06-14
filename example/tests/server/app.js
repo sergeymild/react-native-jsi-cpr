@@ -36,6 +36,12 @@ app.post('/post', function (req, res, next) {
   res.json({ data: req.body });
 });
 
+app.put('/put', function (req, res, next) {
+  console.log('[App.put.headers]', req.headers);
+  console.log('[App.put.body]', req.body);
+  res.json({ data: req.body });
+});
+
 app.delete('/delete', function (req, res, next) {
   console.log('[App.]', req.headers);
   console.log('[App.delete]', req.body);

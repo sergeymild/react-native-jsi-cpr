@@ -125,7 +125,7 @@ void JsiHttp::makeRequest(const string& uniqueId,
     std::vector<cpr::Part> multipartParts;
 
 
-    if ((method == "POST" || method == "PATCH" || method == "DELETE") && !data.isUndefined() && !data.isNull()) {
+    if ((method == "POST" || method == "PATCH" || method == "DELETE" || method == "PUT") && !data.isUndefined() && !data.isNull()) {
         //body = new cpr::Body(data.asString(*runtime_).utf8(*runtime_));
         body = jsiHttp::prepareRequestBody(*runtime_, data, headers);
         if (body == nullptr) {
@@ -134,24 +134,24 @@ void JsiHttp::makeRequest(const string& uniqueId,
     }
 
     pool->queueWork([=, h = *headers]() {
-                std::cout << uniqueId + " queueWork" << std::endl;
-
-                cpr::Timeout time(timeout);
-                cpr::Session session;
-                jsiHttp::EnableOrDisableSSLVerification(this->certPath, &session);
-
-                session.SetOption(cpr::Url{baseUrl + endpoint});
-                session.SetTimeout(time);
-                if (body != nullptr) session.SetBody(std::move(*body));
-                if (multipartParts.size() > 0) {
-                    session.SetMultipart(cpr::Multipart(multipartParts));
-                }
-                session.SetHeader(h);
-                cpr::Response r = jsiHttp::ByMethodName(method, &session);
-                processRequest(uniqueId, skipResponseHeaders, timeout, r);
-
-                std::cout << uniqueId + " endWork" << std::endl;
-            });
+        std::cout << uniqueId + " queueWork" << std::endl;
+        
+        cpr::Timeout time(timeout);
+        cpr::Session session;
+        jsiHttp::EnableOrDisableSSLVerification(this->certPath, &session);
+        
+        session.SetOption(cpr::Url{baseUrl + endpoint});
+        session.SetTimeout(time);
+        if (body != nullptr) session.SetBody(std::move(*body));
+        if (multipartParts.size() > 0) {
+            session.SetMultipart(cpr::Multipart(multipartParts));
+        }
+        session.SetHeader(h);
+        cpr::Response r = jsiHttp::ByMethodName(method, &session);
+        processRequest(uniqueId, skipResponseHeaders, timeout, r);
+        
+        std::cout << uniqueId + " endWork" << std::endl;
+    });
 
 }
 
