@@ -17,7 +17,7 @@ import { CurlHelper } from './CurlHelper';
 
 import { NativeModules, Platform } from 'react-native';
 
-export {JsiError, JsiRequest}
+export {JsiError, JsiRequest, JsiResponse}
 
 const LINKING_ERROR =
   `The package 'react-native-jsi-cpr' doesn't seem to be linked. Make sure: \n\n` +
