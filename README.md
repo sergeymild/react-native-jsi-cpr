@@ -10,7 +10,7 @@ React Native JSI wrapper for [cpr](https://github.com/libcpr/cpr) curl HTTP clie
 
 ```sh
 #add to package.json
-"react-native-jsi-cpr":"sergeymild/react-native-jsi-cpr#0.8.3"
+"react-native-jsi-cpr":"sergeymild/react-native-jsi-cpr#0.8.4"
 # after that make yarn install
 # and npx pod-install
 ```
