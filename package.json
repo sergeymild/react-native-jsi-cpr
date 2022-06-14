@@ -1,6 +1,6 @@
 {
   "name": "react-native-jsi-cpr",
-  "version": "0.8.3",
+  "version": "0.8.4",
   "description": "React Native JSI cpr library",
   "main": "src/index.tsx",
   "react-native": "src/index",
