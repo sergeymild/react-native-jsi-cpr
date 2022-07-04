@@ -148,7 +148,7 @@ void JsiHttp::makeRequest(const string& uniqueId,
         }
         session.SetHeader(h);
         cpr::Response r = jsiHttp::ByMethodName(method, &session);
-        processRequest(uniqueId, skipResponseHeaders, timeout, r);
+        processRequest(uniqueId, skipResponseHeaders, r);
         
         std::cout << uniqueId + " endWork" << std::endl;
     });
@@ -157,7 +157,7 @@ void JsiHttp::makeRequest(const string& uniqueId,
 
 
 //MARK: processGetRequest
-void JsiHttp::processRequest(std::string uniqueId, bool skipResponseHeaders, double timeout, cpr::Response res) {
+void JsiHttp::processRequest(std::string uniqueId, bool skipResponseHeaders, cpr::Response res) {
     Response response;
     response.uniqueId = std::move(uniqueId);
 
@@ -181,7 +181,8 @@ void JsiHttp::processRequest(std::string uniqueId, bool skipResponseHeaders, dou
         response.type = ResultError;
         response.error = errorCodeToString(res.error);
         if (res.error.code == cpr::ErrorCode::OPERATION_TIMEDOUT) {
-            response.status = 504;
+            // send local timeout error
+            response.status = 409;
         }
     }
 

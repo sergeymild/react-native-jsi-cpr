@@ -27,7 +27,7 @@ private:
     facebook::jsi::Runtime *runtime_;
     
     void prepareForRequest(jsi::Runtime& runtime, const jsi::Value* args);
-    void processRequest(std::string uniqueId, bool skipResponseHeaders, double timeout, cpr::Response res);
+    void processRequest(std::string uniqueId, bool skipResponseHeaders, cpr::Response res);
     void makeRequest(
                      const std::string& uniqueId,
                      const std::string& method,

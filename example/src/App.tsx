@@ -107,6 +107,37 @@ export default function App() {
 
       <TouchableOpacity
         style={styles.button}
+        onPress={() => {
+          console.log('[App.DELAY]', )
+          httpbin
+            .get('delay/{delay}', {
+              baseUrl: 'https://httpbin.org',
+              timeout: 2000,
+              params: {delay: 3000}
+            })
+            .then((r) => console.log('[App.response]', r));
+        }}
+      >
+        <Text>Local timeout</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => {
+          console.log('[App.DELAY]', )
+          httpbin
+            .get('408', {
+              baseUrl: 'https://httpstat.us',
+              timeout: 23000,
+            })
+            .then((r) => console.log('[App.response]', r));
+        }}
+      >
+        <Text>server Timeout</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.button}
         onPress={async () => {
           beceptor
             .post('post', {
