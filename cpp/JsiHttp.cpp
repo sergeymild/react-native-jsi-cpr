@@ -182,7 +182,7 @@ void JsiHttp::processRequest(std::string uniqueId, bool skipResponseHeaders, cpr
         response.error = errorCodeToString(res.error);
         if (res.error.code == cpr::ErrorCode::OPERATION_TIMEDOUT) {
             // send local timeout error
-            response.status = 409;
+            response.status = 90;
         }
     }
 
