@@ -203,6 +203,8 @@ repositories {
 dependencies {
   // noinspection GradleDynamicVersion
   implementation 'com.facebook.react:react-native:+'
+  implementation 'com.android.ndk.thirdparty:curl:7.79.1-beta-1'
+  implementation 'com.android.ndk.thirdparty:openssl:1.1.1l-beta-1'
 
   //noinspection GradleDynamicVersion
   extractHeaders("com.facebook.fbjni:fbjni:+:headers")

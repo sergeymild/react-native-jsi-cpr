@@ -80,8 +80,6 @@ target_include_directories(
 )
 
 include_directories(
-        "${CMAKE_CURRENT_SOURCE_DIR}/libs/openssl/include"
-        "${CMAKE_CURRENT_SOURCE_DIR}/libs/curl/include"
         "../cpp/include"
 )
 
@@ -153,20 +151,13 @@ else()
 endif()
 
 
-add_library(local_crypto STATIC IMPORTED)
-add_library(local_openssl STATIC IMPORTED)
-add_library(curl STATIC IMPORTED)
-add_library(nghttp2 SHARED IMPORTED)
-set_target_properties(curl PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/libs/curl/${ANDROID_ABI}/libcurl.a)
-set_target_properties(nghttp2 PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/libs/nghttp2/${ANDROID_ABI}/libnghttp2.so)
-set_target_properties(local_openssl PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/libs/openssl/${ANDROID_ABI}/libssl.a)
-set_target_properties(local_crypto PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/libs/openssl/${ANDROID_ABI}/libcrypto.a)
-
 find_library(
         LOG_LIB
         log
 )
 find_library(z-lib z)
+
+find_package(curl REQUIRED CONFIG)
 
 message(WARNING "JSI-WS linking: CMAKE_CURRENT_SOURCE_DIR=${ANDROID_ABI}")
 target_link_libraries(
@@ -177,10 +168,7 @@ target_link_libraries(
         ${REACT_NATIVE_JNI_LIB}
         ${FBJNI_LIB}
         ${FOLLY_JSON_LIB}
-        curl
-        nghttp2
-        local_openssl
-        local_crypto
+        curl::curl
         ${z-lib}
         android
 )
