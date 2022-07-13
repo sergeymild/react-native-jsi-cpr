@@ -41,6 +41,7 @@ void JsiHttp::installJSIBindings(std::string cPath) {
 
             });
 
+    //MARK: Cancel request
     auto httpCancelRequest = jsi::Function::createFromHostFunction(
             *runtime_,
             jsi::PropNameID::forUtf8(*runtime_, "httpCancelRequest"),
@@ -50,7 +51,14 @@ void JsiHttp::installJSIBindings(std::string cPath) {
                 const jsi::Value *args,
                 size_t count) -> jsi::Value {
                 auto uniqueId = args[0].asString(runtime).utf8(runtime);
-                callbacks.erase(uniqueId);
+                std::cout << uniqueId + " cancelRequest" << std::endl;
+                    
+                Response response;
+                response.uniqueId = std::move(uniqueId);
+                response.error = "REQUEST_CANCELLED";
+                response.type = ResultError;
+                response.status = 80;
+                sendToJS(response);
                 return jsi::Value::undefined();
             });
 
@@ -147,12 +155,34 @@ void JsiHttp::makeRequest(const string& uniqueId,
             session.SetMultipart(cpr::Multipart(multipartParts));
         }
         session.SetHeader(h);
+        // sync call request method
         cpr::Response r = jsiHttp::ByMethodName(method, &session);
+
+        // do not try invoke callback if request was cancelled;
+        if (!callbacks[uniqueId]) {
+            std::cout << uniqueId + " was cancelled" << std::endl;
+            return;
+        }
+        
         processRequest(uniqueId, skipResponseHeaders, r);
         
         std::cout << uniqueId + " endWork" << std::endl;
     });
 
+}
+
+void JsiHttp::sendToJS(Response res) {
+    jsCallInvoker_->invokeAsync([=]() {
+        jsi::Object responseObject = convertResponseToJsiObject(*runtime_, res);
+        auto f = callbacks[res.uniqueId];
+        if (!f) return;
+        if (res.type == ResultOk) {
+            f->call(*runtime_, responseObject, jsi::Value::undefined());
+        } else {
+            f->call(*runtime_, jsi::Value::undefined(), responseObject);
+        }
+        callbacks.erase(res.uniqueId);
+    });
 }
 
 
@@ -180,24 +210,16 @@ void JsiHttp::processRequest(std::string uniqueId, bool skipResponseHeaders, cpr
     } else {
         response.type = ResultError;
         response.error = errorCodeToString(res.error);
-        if (res.error.code == cpr::ErrorCode::OPERATION_TIMEDOUT) {
-            // send local timeout error
-            response.status = 90;
-        }
+        if (res.error.code == cpr::ErrorCode::OPERATION_TIMEDOUT) response.status = 90;
+        if (res.error.code == cpr::ErrorCode::SSL_REMOTE_CERTIFICATE_ERROR) response.status = 70;
+        if (res.error.code == cpr::ErrorCode::SSL_CACERT_ERROR) response.status = 71;
+        if (res.error.code == cpr::ErrorCode::SSL_CONNECT_ERROR) response.status = 72;
+        if (res.error.code == cpr::ErrorCode::SSL_LOCAL_CERTIFICATE_ERROR) response.status = 73;
+        if (res.error.code == cpr::ErrorCode::GENERIC_SSL_ERROR) response.status = 74;
     }
 
-    jsCallInvoker_->invokeAsync([=]() {
-        jsi::Object responseObject = convertResponseToJsiObject(*runtime_, response);
-        auto f = callbacks[response.uniqueId];
-        if (!f) return;
-        if (response.type == ResultOk) {
-            f->call(*runtime_, responseObject, jsi::Value::undefined());
-        } else {
-            f->call(*runtime_, jsi::Value::undefined(), responseObject);
-        }
-        callbacks.erase(response.uniqueId);
-    });
+    sendToJS(response);
 }
 
 
-}
+} //namespace jsiHttp

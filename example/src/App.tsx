@@ -138,6 +138,43 @@ export default function App() {
 
       <TouchableOpacity
         style={styles.button}
+        onPress={() => {
+          console.log('[App.DELAY]', )
+          httpbin
+            .get('200', {
+              baseUrl: 'https://httpstat.us',
+            })
+            .then((r) => console.log('[App.200]', r));
+        }}
+      >
+        <Text>200</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.button}
+        onPress={async () => {
+          console.log('[App.startCancel]', )
+          const requestId = 'cancel-request-id'
+          try {
+            httpbin
+              .get('delay/{delay}', {
+                baseUrl: 'https://httpbin.org',
+                requestId: requestId,
+                params: {delay: 5000}
+              })
+            setTimeout(() => {
+              httpbin.cancelRequest(requestId)
+            }, 1000)
+          } catch (e) {
+            console.log('[App.cancel]', e)
+          }
+        }}
+      >
+        <Text>cancel request</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.button}
         onPress={async () => {
           beceptor
             .post('post', {

@@ -150,18 +150,18 @@ const prepareDataType = (config?: Partial<Omit<JsiRequest, 'url' | 'method'>> & 
 };
 
 export const defaultLogRequest: LogRequest = (request: SimpleRequest) => {
-  console.log('[REQUEST]', new CurlHelper(request).generateCommand());
+  console.log(`[<---]`, new CurlHelper(request).generateCommand());
 };
 
 export const defaultLogResponse: LogResponse = (
   _request: Readonly<Partial<JsiRequest>>,
   response: Readonly<JsiResponse<any>>
 ) => {
-  console.log(`[RESPONSE]`, JSON.stringify(response));
+  console.log(`[${response.status} --->]`, response.endpoint, '\n', JSON.stringify(response), '\n');
 };
 
 export const defaultLogErrorResponse: LogError = (error: JsiError) => {
-  console.log(`[ERROR]`, JSON.stringify(error));
+  console.log(`[---> ${error.status}]`, error.endpoint, '\n', JSON.stringify(error));
 };
 
 const processResponse = async (
@@ -189,8 +189,7 @@ const processResponse = async (
       const processedError = await processError(defaultConfig, params, error);
       if (defaultConfig.logErrorResponse) {
         defaultConfig.logErrorResponse?.({ ...processedError });
-      }
-      if (defaultConfig.logResponse) {
+      } else if (defaultConfig.logResponse) {
         defaultConfig.logResponse({ ...params }, { ...processedError });
       }
       resolve(processedError);
@@ -238,10 +237,6 @@ export class JsiHttp {
   ): Promise<JsiResponse<T>> {
     return new Promise(async (resolve) => {
       let requestParams = prepareRequestParams(this.defaultConfig, params);
-      requestParams = await applyRequestInterceptor(
-        this.defaultConfig,
-        requestParams
-      );
       requestParams = await applyRequestInterceptor(
         this.defaultConfig,
         requestParams

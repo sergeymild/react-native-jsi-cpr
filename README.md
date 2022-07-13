@@ -10,7 +10,7 @@ React Native JSI wrapper for [cpr](https://github.com/libcpr/cpr) curl HTTP clie
 
 ```sh
 #add to package.json
-"react-native-jsi-cpr":"sergeymild/react-native-jsi-cpr#0.8.9"
+"react-native-jsi-cpr":"sergeymild/react-native-jsi-cpr#0.9.0"
 # after that make yarn install
 # and npx pod-install
 ```
@@ -53,7 +53,7 @@ if (postResponse.type === 'error') {
   console.log(postResponse.data)
 }
 
-//cancel request
+//cancel request will throw expception with error status code 80
 http.get<any>('/post', {
   requestId: 'uniqueRequestId'
 })
