@@ -21,7 +21,6 @@ Pod::Spec.new do |s|
   end
 
   s.dependency "React-Core"
-  s.dependency "SocketRocket"
   s.dependency "React-callinvoker"
   s.dependency 'ReactCommon/turbomodule/core'
   s.dependency 'curl'

@@ -101,18 +101,14 @@ find_library(
         PATHS ${LIBRN_DIR}
         NO_CMAKE_FIND_ROOT_PATH
 )
-if(${REACT_NATIVE_VERSION} LESS 66)
-        # JSI lib didn't exist on RN 0.65 and before. Simply omit it.
-        set (JSI_LIB "")
-else()
-        # RN 0.66 distributes libjsi.so, can be used instead of compiling jsi.cpp manually.
-        find_library(
-                JSI_LIB
-                jsi
-                PATHS ${LIBRN_DIR}
-                NO_CMAKE_FIND_ROOT_PATH
-        )
-endif()
+
+# RN 0.66 distributes libjsi.so, can be used instead of compiling jsi.cpp manually.
+find_library(
+        JSI_LIB
+        jsi
+        PATHS ${LIBRN_DIR}
+        NO_CMAKE_FIND_ROOT_PATH
+)
 
 
 find_library(
