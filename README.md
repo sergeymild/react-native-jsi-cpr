@@ -171,6 +171,25 @@ export interface JsiSuccess<T> extends CommonResponse {
 export type JsiResponse<T> = JsiError | JsiSuccess<T>;
 ```
 
+## Tips
+1. Depending Another Android Library Containing libcrypto.so, libssl.so.
+`react-native-jsi-cpr` packages specified in Android C++ include `libcrypto.so, libssl.so` libraries. If a second library which also includes `libcrypto.so, libssl.so` is added as a dependency, gradle fails with More than one file was found with OS independent path `lib/x86/libcrypto.so` or `lib/x86/libssl.so` error message.
+
+You can fix this error by adding the following block into your build.gradle.
+
+android {
+    packagingOptions {
+        pickFirst 'lib/x86/libcrypto.so'
+        pickFirst 'lib/x86/libssl.so'
+        pickFirst 'lib/x86_64/libcrypto.so'
+        pickFirst 'lib/x86_64/libssl.so'
+        pickFirst 'lib/armeabi-v7a/libcrypto.so'
+        pickFirst 'lib/armeabi-v7a/libssl.so'
+        pickFirst 'lib/arm64-v8a/libcrypto.so'
+        pickFirst 'lib/arm64-v8a/libssl.so'
+    }
+}
+
 ## Contributing
 
 See the [contributing guide](CONTRIBUTING.md) to learn how to contribute to the repository and the development workflow.
