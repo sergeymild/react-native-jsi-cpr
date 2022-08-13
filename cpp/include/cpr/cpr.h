@@ -9,7 +9,6 @@
 #include "cpr/connect_timeout.h"
 #include "cpr/cookies.h"
 #include "cpr/cprtypes.h"
-#include "cpr/cprver.h"
 #include "cpr/curl_container.h"
 #include "cpr/curlholder.h"
 #include "cpr/error.h"
