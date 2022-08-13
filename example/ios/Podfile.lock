@@ -212,19 +212,17 @@ PODS:
     - glog
   - react-native-image-picker (4.7.3):
     - React-Core
-  - react-native-jsi-cpr (0.8.9):
+  - react-native-jsi-cpr (1.1.0):
     - curl
     - React-callinvoker
     - React-Core
-    - react-native-jsi-cpr/cpr (= 0.8.9)
+    - react-native-jsi-cpr/cpr (= 1.1.0)
     - ReactCommon/turbomodule/core
-    - SocketRocket
-  - react-native-jsi-cpr/cpr (0.8.9):
+  - react-native-jsi-cpr/cpr (1.1.0):
     - curl
     - React-callinvoker
     - React-Core
     - ReactCommon/turbomodule/core
-    - SocketRocket
   - React-perflogger (0.66.4)
   - React-RCTActionSheet (0.66.4):
     - React-Core/RCTActionSheetHeaders (= 0.66.4)
@@ -290,7 +288,6 @@ PODS:
     - React-jsi (= 0.66.4)
     - React-logger (= 0.66.4)
     - React-perflogger (= 0.66.4)
-  - SocketRocket (0.6.0)
   - Yoga (1.14.0)
 
 DEPENDENCIES:
@@ -333,7 +330,6 @@ SPEC REPOS:
   trunk:
     - curl
     - fmt
-    - SocketRocket
 
 EXTERNAL SOURCES:
   boost:
@@ -422,7 +418,7 @@ SPEC CHECKSUMS:
   React-jsinspector: d0374f7509d407d2264168b6d0fad0b54e300b85
   React-logger: 933f80c97c633ee8965d609876848148e3fef438
   react-native-image-picker: 4e6008ad8c2321622affa2c85432a5ebd02d480c
-  react-native-jsi-cpr: 1b1da8b802b95c163d7bdb5298472f5006099c5c
+  react-native-jsi-cpr: f1dec4386bf6afd727522489a45a35dc688764fa
   React-perflogger: 93075d8931c32cd1fce8a98c15d2d5ccc4d891bd
   React-RCTActionSheet: 7d3041e6761b4f3044a37079ddcb156575fb6d89
   React-RCTAnimation: 743e88b55ac62511ae5c2e22803d4f503f2a3a13
@@ -435,9 +431,8 @@ SPEC CHECKSUMS:
   React-RCTVibration: e3ffca672dd3772536cb844274094b0e2c31b187
   React-runtimeexecutor: dec32ee6f2e2a26e13e58152271535fadff5455a
   ReactCommon: 57b69f6383eafcbd7da625bfa6003810332313c4
-  SocketRocket: fccef3f9c5cedea1353a9ef6ada904fde10d6608
   Yoga: e7dc4e71caba6472ff48ad7d234389b91dadc280
 
-PODFILE CHECKSUM: 0f51b654df093dba4503a912017bf14ec9fa7137
+PODFILE CHECKSUM: dd33b2073fe60e3182231d8ad334bfb5d3697eff
 
 COCOAPODS: 1.11.3

@@ -10,7 +10,7 @@ Pod::Spec.new do |s|
   s.license      = package["license"]
   s.authors      = package["author"]
 
-  s.platforms    = { :ios => "11.0" }
+  s.platforms    = { :ios => "13.0" }
   s.source       = { :git => "https://github.com/sergeymild/react-native-jsi-cpr.git", :tag => "#{s.version}" }
 
   s.source_files = "ios/**/*.{h,m,mm}", "cpp/**/*.{h,cpp}"
@@ -19,6 +19,10 @@ Pod::Spec.new do |s|
      ali.source_files = 'cpp/include/**/*.{h,cpp}'
      ali.header_mappings_dir = 'cpp/include'
   end
+
+  s.pod_target_xcconfig    = {
+    "CLANG_CXX_LANGUAGE_STANDARD" => "c++17",
+  }
 
   s.dependency "React-Core"
   s.dependency "React-callinvoker"

@@ -3,8 +3,11 @@
 
 #include <cstdint>
 #include <fstream>
+#include <future>
 #include <memory>
+#include <queue>
 
+#include "cpr/accept_encoding.h"
 #include "cpr/auth.h"
 #include "cpr/bearer.h"
 #include "cpr/body.h"
@@ -36,17 +39,19 @@
 
 namespace cpr {
 
-class Interceptor;
+using AsyncResponse = std::future<Response>;
 
-class Session {
+class Interceptor;
+class MultiPerform;
+
+class Session : public std::enable_shared_from_this<Session> {
   public:
     Session();
-    Session(Session&& old) noexcept;
     Session(const Session& other) = delete;
 
-    ~Session();
+    ~Session() = default;
 
-    Session& operator=(Session&& old) noexcept;
+    Session& operator=(Session&& old) noexcept = default;
     Session& operator=(const Session& other) = delete;
 
     void SetUrl(const Url& url);
@@ -57,6 +62,11 @@ class Session {
     void SetTimeout(const Timeout& timeout);
     void SetConnectTimeout(const ConnectTimeout& timeout);
     void SetAuth(const Authentication& auth);
+// Only supported with libcurl >= 7.61.0.
+// As an alternative use SetHeader and add the token manually.
+#if LIBCURL_VERSION_NUM >= 0x073D00
+    void SetBearer(const Bearer& token);
+#endif
     void SetUserAgent(const UserAgent& ua);
     void SetPayload(Payload&& payload);
     void SetPayload(const Payload& payload);
@@ -87,6 +97,9 @@ class Session {
     void SetRange(const Range& range);
     void SetMultiRange(const MultiRange& multi_range);
     void SetReserveSize(const ReserveSize& reserve_size);
+    void SetAcceptEncoding(const AcceptEncoding& accept_encoding);
+    void SetAcceptEncoding(AcceptEncoding&& accept_encoding);
+    void SetLimitRate(const LimitRate& limit_rate);
 
     // Used in templated functions
     void SetOption(const Url& url);
@@ -132,6 +145,8 @@ class Session {
     void SetOption(const Range& range);
     void SetOption(const MultiRange& multi_range);
     void SetOption(const ReserveSize& reserve_size);
+    void SetOption(const AcceptEncoding& accept_encoding);
+    void SetOption(AcceptEncoding&& accept_encoding);
 
     cpr_off_t GetDownloadFileLength();
     /**
@@ -155,6 +170,31 @@ class Session {
     Response Post();
     Response Put();
 
+    AsyncResponse GetAsync();
+    AsyncResponse DeleteAsync();
+    AsyncResponse DownloadAsync(const WriteCallback& write);
+    AsyncResponse DownloadAsync(std::ofstream& file);
+    AsyncResponse HeadAsync();
+    AsyncResponse OptionsAsync();
+    AsyncResponse PatchAsync();
+    AsyncResponse PostAsync();
+    AsyncResponse PutAsync();
+
+    template <typename Then>
+    auto GetCallback(Then then);
+    template <typename Then>
+    auto PostCallback(Then then);
+    template <typename Then>
+    auto PutCallback(Then then);
+    template <typename Then>
+    auto HeadCallback(Then then);
+    template <typename Then>
+    auto DeleteCallback(Then then);
+    template <typename Then>
+    auto OptionsCallback(Then then);
+    template <typename Then>
+    auto PatchCallback(Then then);
+
     std::shared_ptr<CurlHolder> GetCurlHolder();
     std::string GetFullRequestUrl();
 
@@ -165,19 +205,86 @@ class Session {
     void PreparePatch();
     void PreparePost();
     void PreparePut();
+    void PrepareDownload(const WriteCallback& write);
+    void PrepareDownload(std::ofstream& file);
     Response Complete(CURLcode curl_error);
+    Response CompleteDownload(CURLcode curl_error);
 
     void AddInterceptor(const std::shared_ptr<Interceptor>& pinterceptor);
 
   private:
     // Interceptors should be able to call the private procceed() function
     friend Interceptor;
+    friend MultiPerform;
 
+    bool hasBodyOrPayload_{false};
+    bool chunkedTransferEncoding_{false};
+    std::shared_ptr<CurlHolder> curl_;
+    Url url_;
+    Parameters parameters_;
+    Proxies proxies_;
+    ProxyAuthentication proxyAuth_;
+    Header header_;
+    AcceptEncoding acceptEncoding_;
+    /**
+     * Will be set by the read callback.
+     * Ensures that the "Transfer-Encoding" is set to "chunked", if not overriden in header_.
+     **/
+    ReadCallback readcb_;
+    HeaderCallback headercb_;
+    WriteCallback writecb_;
+    ProgressCallback progresscb_;
+    DebugCallback debugcb_;
+    size_t response_string_reserve_size_{0};
+    std::string response_string_;
+    std::string header_string_;
+    std::queue<std::shared_ptr<Interceptor>> interceptors_;
+    bool isUsedInMultiPerform{false};
+
+    Response makeDownloadRequest();
+    Response makeRequest();
     Response proceed();
-
-    class Impl;
-    std::unique_ptr<Impl> pimpl_;
+    void prepareCommon();
+    void prepareCommonDownload();
+    void SetHeaderInternal();
+    std::shared_ptr<Session> GetSharedPtrFromThis();
+    CURLcode DoEasyPerform();
 };
+
+template <typename Then>
+auto Session::GetCallback(Then then) {
+    return async([shared_this = GetSharedPtrFromThis()](Then then_inner) { return then_inner(shared_this->Get()); }, std::move(then));
+}
+
+template <typename Then>
+auto Session::PostCallback(Then then) {
+    return async([shared_this = GetSharedPtrFromThis()](Then then_inner) { return then_inner(shared_this->Post()); }, std::move(then));
+}
+
+template <typename Then>
+auto Session::PutCallback(Then then) {
+    return async([shared_this = GetSharedPtrFromThis()](Then then_inner) { return then_inner(shared_this->Put()); }, std::move(then));
+}
+
+template <typename Then>
+auto Session::HeadCallback(Then then) {
+    return async([shared_this = GetSharedPtrFromThis()](Then then_inner) { return then_inner(shared_this->Head()); }, std::move(then));
+}
+
+template <typename Then>
+auto Session::DeleteCallback(Then then) {
+    return async([shared_this = GetSharedPtrFromThis()](Then then_inner) { return then_inner(shared_this->Delete()); }, std::move(then));
+}
+
+template <typename Then>
+auto Session::OptionsCallback(Then then) {
+    return async([shared_this = GetSharedPtrFromThis()](Then then_inner) { return then_inner(shared_this->Options()); }, std::move(then));
+}
+
+template <typename Then>
+auto Session::PatchCallback(Then then) {
+    return async([shared_this = GetSharedPtrFromThis()](Then then_inner) { return then_inner(shared_this->Patch()); }, std::move(then));
+}
 
 } // namespace cpr
 
