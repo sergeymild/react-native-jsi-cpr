@@ -1,5 +1,4 @@
 #import <jsi/jsi.h>
-#import "ThreadPool.h"
 #include "map"
 #include <ReactCommon/CallInvoker.h>
 #include "JsiUtils.h"
@@ -20,7 +19,6 @@ public:
     
     
 private:
-    ThreadPool *pool;
     std::map<std::string, std::shared_ptr<jsi::Function>> callbacks;
     std::shared_ptr<react::CallInvoker> jsCallInvoker_;
     std::string certPath;

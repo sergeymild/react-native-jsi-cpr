@@ -12,9 +12,7 @@ JsiHttp::JsiHttp(
         jsi::Runtime *rt,
         std::shared_ptr<facebook::react::CallInvoker> jsCallInvoker)
         : runtime_(rt),
-          jsCallInvoker_(std::move(jsCallInvoker)) {
-              pool = new ThreadPool();
-          }
+          jsCallInvoker_(std::move(jsCallInvoker)) {}
 
 void JsiHttp::installJSIBindings(std::string cPath) {
     this->certPath = cPath;
@@ -140,35 +138,46 @@ void JsiHttp::makeRequest(const string& uniqueId,
             multipartParts = convertJSIObjectToMultipart(*runtime_, data);
         }
     }
-
-    pool->queueWork([=, h = *headers]() {
+    
+    cpr::Timeout time(timeout);
+    std::shared_ptr<cpr::Session> session = std::make_shared<cpr::Session>();
+    jsiHttp::EnableOrDisableSSLVerification(this->certPath, session);
+    
+    session->SetOption(cpr::Url{baseUrl + endpoint});
+    session->SetTimeout(time);
+    if (body != nullptr) session->SetBody(std::move(*body));
+    if (multipartParts.size() > 0) {
+        session->SetMultipart(cpr::Multipart(multipartParts));
+    }
+    session->SetHeader(*headers);
+    
+    auto callback = [=, h = *headers](cpr::Response r) {
         std::cout << uniqueId + " queueWork" << std::endl;
-        
-        cpr::Timeout time(timeout);
-        cpr::Session session;
-        jsiHttp::EnableOrDisableSSLVerification(this->certPath, &session);
-        
-        session.SetOption(cpr::Url{baseUrl + endpoint});
-        session.SetTimeout(time);
-        if (body != nullptr) session.SetBody(std::move(*body));
-        if (multipartParts.size() > 0) {
-            session.SetMultipart(cpr::Multipart(multipartParts));
-        }
-        session.SetHeader(h);
-        // sync call request method
-        cpr::Response r = jsiHttp::ByMethodName(method, &session);
 
         // do not try invoke callback if request was cancelled;
         if (!callbacks[uniqueId]) {
             std::cout << uniqueId + " was cancelled" << std::endl;
             return;
         }
-        
-        processRequest(uniqueId, skipResponseHeaders, r);
-        
-        std::cout << uniqueId + " endWork" << std::endl;
-    });
 
+        processRequest(uniqueId, skipResponseHeaders, r);
+
+        std::cout << uniqueId + " endWork" << std::endl;
+    };
+    
+    if (method == "GET") {
+        session->GetCallback(callback);
+    } else if (method == "POST") {
+        session->PostCallback(callback);
+    } else if (method == "PATCH") {
+        session->PatchCallback(callback);
+    } else if (method == "PUT") {
+        session->PutCallback(callback);
+    } else if (method == "DELETE") {
+        session->DeleteCallback(callback);
+    } else {
+        session->GetCallback(callback);
+    }
 }
 
 void JsiHttp::sendToJS(Response res) {

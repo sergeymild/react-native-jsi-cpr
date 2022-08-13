@@ -135,7 +135,22 @@ cpr::Response ByMethodName(const std::string methodName, cpr::Session *session) 
     return session->Get();
 }
 
-void EnableOrDisableSSLVerification(const std::string certPath, cpr::Session *session) {
+cpr::Response AsyncByMethodName(const std::string methodName, cpr::Session *session) {
+    if (methodName == "GET") {
+        return session->Get();
+    } else if (methodName == "POST") {
+        return session->Post();
+    } else if (methodName == "PATCH") {
+        return session->Patch();
+    } else if (methodName == "PUT") {
+        return session->Put();
+    } else if (methodName == "DELETE") {
+        return session->Delete();
+    }
+    return session->Get();
+}
+
+void EnableOrDisableSSLVerification(const std::string certPath, std::shared_ptr<cpr::Session> session) {
     #if defined(ONANDROID)
         if (!certPath.empty()) {
           curl_easy_setopt(session->GetCurlHolder().get()->handle, CURLOPT_CAINFO, certPath.c_str());

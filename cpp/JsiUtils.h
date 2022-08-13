@@ -31,6 +31,6 @@ std::vector<cpr::Part> convertJSIObjectToMultipart(jsi::Runtime &runtime, jsi::V
 
 cpr::Body* prepareRequestBody(jsi::Runtime &runtime, jsi::Value& data, cpr::Header *headers);
 cpr::Response ByMethodName(const std::string methodName, cpr::Session *session);
-void EnableOrDisableSSLVerification(const std::string certPath, cpr::Session *session);
+void EnableOrDisableSSLVerification(const std::string certPath, std::shared_ptr<cpr::Session> session);
 
 }
