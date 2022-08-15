@@ -39,7 +39,7 @@ if (getResponse.type === 'error') {
   console.log(getResponse.data)
 }
 
-//simple post request
+//simple post request, will never throw any errors
 const postResponse = await http.post<any>('/post', {
   // also may be 'string' | 'json' | 'formUrlEncoded' | 'formData'
   json: {
