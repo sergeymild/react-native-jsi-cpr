@@ -101,19 +101,19 @@ android {
   ndkVersion getExtOrDefault('ndkVersion')
 
   defaultConfig {
-    minSdkVersion safeExtGet('minSdkVersion', 21)
+    minSdkVersion 24
     targetSdkVersion safeExtGet('targetSdkVersion', 30)
 
     externalNativeBuild {
       cmake {
         cppFlags "-fexceptions", "-frtti", "-std=c++1y", "-DONANDROID"
-        abiFilters "armeabi-v7a", "arm64-v8a", "x86_64"
+        abiFilters "armeabi-v7a", "arm64-v8a"
         arguments '-DANDROID_STL=c++_shared',
           "-DREACT_NATIVE_VERSION=${REACT_NATIVE_VERSION}",
           "-DNODE_MODULES_DIR=${nodeModules}",
           "-DANDROID_CPP_FEATURES=rtti exceptions",
           '-DANDROID_ARM_NEON=TRUE',
-          '-DANDROID_PLATFORM=android-21',
+          '-DANDROID_PLATFORM=android-24',
           "-DPREBUILT_DIR=${prebuiltDir}"
       }
     }
