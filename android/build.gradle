@@ -5,7 +5,7 @@ buildscript {
   }
 
   dependencies {
-    classpath "com.android.tools.build:gradle:7.2.1"
+    classpath "com.android.tools.build:gradle:+"
   }
 }
 
@@ -27,26 +27,42 @@ def getExtOrIntegerDefault(name) {
   return rootProject.ext.has(name) ? rootProject.ext.get(name) : (project.properties["JsiCpr_" + name]).toInteger()
 }
 
-def supportsNamespace() {
-  def parsed = com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION.tokenize('.')
-  def major = parsed[0].toInteger()
-  def minor = parsed[1].toInteger()
-
-  // Namespace support was added in 7.3.0
-  return (major == 7 && minor >= 3) || major >= 8
+def safeExtGet(prop, fallback) {
+  rootProject.ext.has(prop) ? rootProject.ext.get(prop) : fallback
 }
 
-android {
-  if (supportsNamespace()) {
-    namespace "com.jsicpr"
+def reactNativeArchitectures() {
+  def value = project.getProperties().get("reactNativeArchitectures")
+  return value ? value.split(",") : ["armeabi-v7a", "arm64-v8a"]
+}
 
-    sourceSets {
-      main {
-        manifest.srcFile "src/main/AndroidManifestNew.xml"
-      }
-    }
+def resolveReactNativeDirectory() {
+  def reactNativeLocation = safeExtGet("REACT_NATIVE_NODE_MODULES_DIR", null)
+  if (reactNativeLocation != null) {
+    return file(reactNativeLocation)
   }
 
+  // monorepo workaround
+  // react-native can be hoisted or in project's own node_modules
+  def reactNativeFromProjectNodeModules = file("${rootProject.projectDir}/../node_modules/react-native")
+  if (reactNativeFromProjectNodeModules.exists()) {
+    return reactNativeFromProjectNodeModules
+  }
+
+  throw new GradleException(
+    "[Reanimated] Unable to resolve react-native location in " +
+      "node_modules. You should project extension property (in app/build.gradle) " +
+      "`REACT_NATIVE_NODE_MODULES_DIR` with path to react-native."
+  )
+}
+
+def reactNativeRootDir = resolveReactNativeDirectory()
+
+android {
+  buildFeatures {
+    prefab true
+  }
+  namespace "com.jsicpr"
   ndkVersion getExtOrDefault("ndkVersion")
   compileSdkVersion getExtOrIntegerDefault("compileSdkVersion")
 
@@ -57,9 +73,29 @@ android {
     externalNativeBuild {
       cmake {
         cppFlags "-O2 -frtti -fexceptions -Wall -fstack-protector-all"
-        abiFilters "x86", "x86_64", "armeabi-v7a", "arm64-v8a"
+        abiFilters "armeabi-v7a", "arm64-v8a"
+        arguments '-DANDROID_STL=c++_shared',
+          "-DREACT_NATIVE_DIR=${reactNativeRootDir.path}"
       }
     }
+    ndk {
+      abiFilters (*reactNativeArchitectures())
+    }
+  }
+
+  packagingOptions {
+    // Exclude all Libraries that are already present in the user's app (through React Native or by him installing REA)
+    excludes = [
+      "lib/arm64-v8a/libcrypto.so",
+      "lib/arm64-v8a/libjsi.so",
+      "lib/arm64-v8a/libreactnativejni.so",
+      "lib/arm64-v8a/libssl.so"
+    ]
+  }
+
+  configurations {
+    extractHeaders
+    extractJNI
   }
 
   externalNativeBuild {
@@ -95,5 +131,7 @@ dependencies {
   // For > 0.71, this will be replaced by `com.facebook.react:react-android:$version` by react gradle plugin
   //noinspection GradleDynamicVersion
   implementation "com.facebook.react:react-native:+"
+  implementation 'com.android.ndk.thirdparty:curl:+'
+  implementation 'com.android.ndk.thirdparty:openssl:+'
 }
 

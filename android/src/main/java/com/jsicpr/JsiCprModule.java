@@ -1,5 +1,7 @@
 package com.jsicpr;
 
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 
 import com.facebook.react.bridge.Promise;
@@ -12,6 +14,8 @@ import com.facebook.react.module.annotations.ReactModule;
 public class JsiCprModule extends ReactContextBaseJavaModule {
   public static final String NAME = "JsiCpr";
 
+  private HttpHelper httpHelper;
+
   public JsiCprModule(ReactApplicationContext reactContext) {
     super(reactContext);
   }
@@ -22,16 +26,16 @@ public class JsiCprModule extends ReactContextBaseJavaModule {
     return NAME;
   }
 
-  static {
-    System.loadLibrary("cpp");
-  }
-
-  private static native double nativeMultiply(double a, double b);
-
-  // Example method
-  // See https://reactnative.dev/docs/native-modules-android
-  @ReactMethod
-  public void multiply(double a, double b, Promise promise) {
-    promise.resolve(nativeMultiply(a, b));
+  @ReactMethod(isBlockingSynchronousMethod = true)
+  public boolean install() {
+    try {
+      System.loadLibrary("react-native-jsi-cpr");
+      httpHelper = new HttpHelper();
+      httpHelper.install(getReactApplicationContext());
+      return true;
+    } catch (Exception exception) {
+      Log.e(NAME, "Failed to install JSI Bindings!", exception);
+      return false;
+    }
   }
 }
